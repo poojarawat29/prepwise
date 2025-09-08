@@ -1,11 +1,29 @@
-import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { dummyInterviews } from "@/constants";
+
 import { Button } from "@/components/ui/button";
 import InterviewCard from "@/components/InterviewCard";
 
-const page = () => {
+import { getCurrentUser } from "@/lib/actions/auth.actions";
+import {
+    getInterviewsByUserId,
+    getLatestInterviews,
+} from "@/lib/actions/general.actions";
+
+async function Home() {
+    const user = await getCurrentUser();
+    const userId = user?.id ?? null;
+
+    const [userInterviews, allInterview] = await Promise.all([
+        userId ? getInterviewsByUserId(userId) : Promise.resolve([]),
+        userId ? getLatestInterviews({ userId }) : Promise.resolve([]),
+    ]);
+
+    const hasPastInterviews = (userInterviews?.length ?? 0) > 0;
+    const hasUpcomingInterviews = (allInterview?.length ?? 0) > 0;
+    const latestInterviews = userId
+        ? await getLatestInterviews({ userId })
+        : [];
     return (
         <>
             <section className="card-cta">
@@ -14,43 +32,66 @@ const page = () => {
                     <p className="text-lg">
                         Practice real interview questions & get instant feedback
                     </p>
+
                     <Button asChild className="btn-primary max-sm:w-full">
                         <Link href="/interview">Start an Interview</Link>
                     </Button>
+                </div>
 
-                    <Image
-                        src="/robot.png"
-                        alt="robo-dude"
-                        width={400}
-                        height={400}
-                        className="max-sm:hidden"
-                    />
+                <Image
+                    src="/robot.png"
+                    alt="robo-dude"
+                    width={400}
+                    height={400}
+                    className="max-sm:hidden"
+                />
+            </section>
+
+            <section className="flex flex-col gap-6 mt-8">
+                <h2>Your Interviews</h2>
+
+                <div className="interviews-section">
+                    {hasPastInterviews ? (
+                        userInterviews?.map((interview) => (
+                            <InterviewCard
+                                key={interview.id}
+                                userId={user?.id}
+                                interviewId={interview.id}
+                                role={interview.role}
+                                type={interview.type}
+                                techstack={interview.techstack}
+                                createdAt={interview.createdAt}
+                            />
+                        ))
+                    ) : (
+                        <p>You haven&apos;t taken any interviews yet</p>
+                    )}
                 </div>
             </section>
 
-            {/* ✅ Grid for side-by-side cards */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                {dummyInterviews.map((interview) => (
-                    <InterviewCard {...interview} key={interview.id} />
-                ))}
-            </section>
+            <section className="flex flex-col gap-6 mt-8">
+                <h2>Take Interviews</h2>
 
-            <section className="mt-8">
-                <h2>Take an Interviews</h2>
-
-                {/* ✅ Same grid here */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-                    {dummyInterviews.map((interview) => (
-                        <InterviewCard {...interview} key={interview.id} />
-                    ))}
-
-                    <div className="interviews-section col-span-full text-center mt-6">
+                <div className="interviews-section">
+                    {hasUpcomingInterviews ? (
+                        allInterview?.map((interview) => (
+                            <InterviewCard
+                                key={interview.id}
+                                userId={user?.id}
+                                interviewId={interview.id}
+                                role={interview.role}
+                                type={interview.type}
+                                techstack={interview.techstack}
+                                createdAt={interview.createdAt}
+                            />
+                        ))
+                    ) : (
                         <p>There are no interviews available</p>
-                    </div>
+                    )}
                 </div>
             </section>
         </>
     );
-};
+}
 
-export default page;
+export default Home;
