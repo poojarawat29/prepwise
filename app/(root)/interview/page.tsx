@@ -16,7 +16,7 @@ const Page = async () => {
             <Agent
                 userName={user.name ?? "Guest"}
                 userId={user.id ?? ""}
-                profileImage={user.profileURL ?? ""}
+
                 type="generate"
             />
         </>

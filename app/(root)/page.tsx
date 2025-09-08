@@ -12,6 +12,7 @@ import {
 
 async function Home() {
     const user = await getCurrentUser();
+
     const userId = user?.id ?? null;
 
     const [userInterviews, allInterview] = await Promise.all([
@@ -21,9 +22,7 @@ async function Home() {
 
     const hasPastInterviews = (userInterviews?.length ?? 0) > 0;
     const hasUpcomingInterviews = (allInterview?.length ?? 0) > 0;
-    const latestInterviews = userId
-        ? await getLatestInterviews({ userId })
-        : [];
+
     return (
         <>
             <section className="card-cta">
